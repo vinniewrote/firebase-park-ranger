@@ -5,17 +5,44 @@ import * as firebase from 'firebase';
 // import provider and auth that we exported from src/client.js
 import {fbProvider, googleProvider, twitterProvider} from './index';
 
+const defaultMessaging = {
+  message: "Welcome. Please login for the full Park Ranger experience",
+  user: "unknown user. login so we can know you"
+};
+
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      message: "Welcome. Please login for the full Park Ranger experience",
-      user: "unknown user. login so we can know you",
+      ...defaultMessaging,
       isLoggedIn: false
     };
   }
 
   componentDidMount() {
+    if (this.state.isLoggedIn) {
+      this.getDatabaseInfo();
+    }
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        console.log('user is signed in');
+      } else {
+        console.log('no user signed in');
+      }
+    });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const prevLoggedIn = prevState && prevState.isLoggedIn;
+    const loggedIn = this.state.isLoggedIn;
+
+    if (loggedIn && !prevLoggedIn) {
+      this.getDatabaseInfo();
+    }
+  }
+
+  getDatabaseInfo() {
     const rootRef = firebase.database().ref().child('test');
     const msgRef = rootRef.child('message');
     msgRef.on('value', snap => {
@@ -48,7 +75,7 @@ class App extends Component {
 
   logOut() {
     firebase.auth().signOut().then(function() {
-      this.setState({user: null, isLoggedIn: false});
+      this.setState({user: null, isLoggedIn: false, ...defaultMessaging});
     }.bind(this));
   };
 
@@ -61,7 +88,7 @@ class App extends Component {
         </div>
         <h3>{this.state.message}</h3>
         <h5>{this.state.isLoggedIn ? this.state.user.displayName : this.state.user}</h5>
-
+        <img src={this.state.user.photoURL} />
         {!this.state.isLoggedIn && <div><button onClick={this.loginWithFacebook.bind(this)}>Login with Facebook</button>
         <button onClick={this.loginWithGoogle.bind(this)}>Login with Google</button>
         <button onClick={this.loginWithTwitter.bind(this)}>Login with Twitter</button></div>}
