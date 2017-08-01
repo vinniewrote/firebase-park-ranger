@@ -43,14 +43,24 @@ class App extends Component {
   }
 
   getDatabaseInfo() {
-    const rootRef = firebase.database().ref().child('test');
-    const msgRef = rootRef.child('message');
-    msgRef.on('value', snap => {
-      this.setState({
-        message: snap.val()
-      });
+    const entryRef = firebase.database().ref("entries");
+    const entryData =[];
+    entryRef.on('value',snap => {
+       this.setState({
+         data: snap.val()
+       });
+      //  snap.forEach(function(entryNodes){
+      //    console.log(entryNodes.val().entryDate);
+      //    console.log(entryNodes.val().entryTitle);
+      //     // const entryArray = entryData.push(entryNodes.val().entryDate);
+      //     // console.log(entryArray);
+      //  });
+      //  this.setState({
+      //    message: entryArray
+      //  });
     });
   }
+
 
   loginWithFacebook() {
     firebase.auth().signInWithPopup(fbProvider).then(function(result) {
@@ -86,9 +96,12 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Welcome to React my guy</h2>
         </div>
-        <h3>{this.state.message}</h3>
+          <h3>{this.state.message}</h3>
+          const entries = this.state.data.map((entry, i) =>(<div key={i}>{entry}</div>));
+          <div>{entries}</div>
         <h5>{this.state.isLoggedIn ? this.state.user.displayName : this.state.user}</h5>
         <img src={this.state.user.photoURL} />
+
         {!this.state.isLoggedIn && <div><button onClick={this.loginWithFacebook.bind(this)}>Login with Facebook</button>
         <button onClick={this.loginWithGoogle.bind(this)}>Login with Google</button>
         <button onClick={this.loginWithTwitter.bind(this)}>Login with Twitter</button></div>}
